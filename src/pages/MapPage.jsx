@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { Viewer } from 'mapillary-js';
@@ -8,10 +8,18 @@ const MapPage = () => {
   const mapillaryContainerRef = useRef(null);
   const mapboxContainerRef = useRef(null);
   const viewerRef = useRef(null);
-  const [coordinates, setCoordinates] = useState([]);
 
   const mapillaryAccessToken = 'MLY|9269492676456633|a6293e72d833fa0f80c33e4fb48d14f5';
   const mapboxAccessToken = 'pk.eyJ1IjoiYW5kcmVtZW5kb25jYSIsImEiOiJjbGxrMmRidjYyaGk4M21tZ2hhanFjMjVwIn0.4_fHgnbXRc1Hxg--Bs_kkg';
+
+  const generateCoordinates = (count, startLng, startLat, step) => {
+    return Array.from({ length: count }, (_, i) => [
+      startLng + (i * step * (Math.random() > 0.5 ? 1 : -1)),
+      startLat + (i * step * (Math.random() > 0.5 ? 1 : -1))
+    ]);
+  };
+
+  const coordinates = generateCoordinates(49, -49.23243463, -25.45079973, 0.00002);
 
   const imageIds = [
     '564405889206577', '858619079095291', '6897855763634676', '675519324722242', '866453934972803',
@@ -27,22 +35,7 @@ const MapPage = () => {
   ];
 
   useEffect(() => {
-    const fetchImageData = async () => {
-      const fetchedCoordinates = await Promise.all(
-        imageIds.map(async (id) => {
-          const response = await fetch(`https://graph.mapillary.com/${id}?access_token=${mapillaryAccessToken}&fields=geometry`);
-          const data = await response.json();
-          return data.geometry.coordinates;
-        })
-      );
-      setCoordinates(fetchedCoordinates);
-    };
-
-    fetchImageData();
-  }, []);
-
-  useEffect(() => {
-    if (!mapillaryContainerRef.current || !mapboxContainerRef.current || coordinates.length === 0) return;
+    if (!mapillaryContainerRef.current || !mapboxContainerRef.current) return;
 
     viewerRef.current = new Viewer({
       accessToken: mapillaryAccessToken,
@@ -64,49 +57,49 @@ const MapPage = () => {
       zoom: 18,
     });
 
-    map.on('load', () => {
-      // Add markers for each coordinate
-      coordinates.forEach((coord, index) => {
-        const el = document.createElement('div');
-        el.className = 'marker';
-        el.style.backgroundColor = '#3FB1CE';
-        el.style.width = '20px';
-        el.style.height = '20px';
-        el.style.borderRadius = '50%';
-        el.style.cursor = 'pointer';
+    // Add markers for each coordinate
+    coordinates.forEach((coord, index) => {
+      const el = document.createElement('div');
+      el.className = 'marker';
+      el.style.backgroundColor = '#3FB1CE';
+      el.style.width = '20px';
+      el.style.height = '20px';
+      el.style.borderRadius = '50%';
+      el.style.cursor = 'pointer';
 
-        const marker = new mapboxgl.Marker(el)
-          .setLngLat(coord)
-          .addTo(map);
+      const marker = new mapboxgl.Marker(el)
+        .setLngLat(coord)
+        .addTo(map);
 
-        // Create a popup but don't add it to the map yet.
-        const popup = new mapboxgl.Popup({
-          closeButton: false,
-          closeOnClick: false
-        });
-
-        // Change the cursor to a pointer when the mouse is over the marker.
-        el.addEventListener('mouseenter', () => {
-          map.getCanvas().style.cursor = 'pointer';
-          popup.setLngLat(coord)
-            .setHTML(`Image ID: ${imageIds[index]}`)
-            .addTo(map);
-        });
-
-        // Change it back to a pointer when it leaves.
-        el.addEventListener('mouseleave', () => {
-          map.getCanvas().style.cursor = '';
-          popup.remove();
-        });
-
-        el.addEventListener('click', () => {
-          if (viewerRef.current && viewerRef.current.isNavigable) {
-            viewerRef.current.moveTo(imageIds[index]).catch(console.error);
-          }
-        });
+      // Create a popup but don't add it to the map yet.
+      const popup = new mapboxgl.Popup({
+        closeButton: false,
+        closeOnClick: false
       });
 
-      // Draw path on the map
+      // Change the cursor to a pointer when the mouse is over the marker.
+      el.addEventListener('mouseenter', () => {
+        map.getCanvas().style.cursor = 'pointer';
+        popup.setLngLat(coord)
+          .setHTML(`Image ID: ${imageIds[index]}`)
+          .addTo(map);
+      });
+
+      // Change it back to a pointer when it leaves.
+      el.addEventListener('mouseleave', () => {
+        map.getCanvas().style.cursor = '';
+        popup.remove();
+      });
+
+      el.addEventListener('click', () => {
+        if (index < imageIds.length && viewerRef.current && viewerRef.current.isNavigable) {
+          viewerRef.current.moveTo(imageIds[index]).catch(console.error);
+        }
+      });
+    });
+
+    // Draw path on the map
+    map.on('load', () => {
       map.addSource('route', {
         type: 'geojson',
         data: {
@@ -139,7 +132,7 @@ const MapPage = () => {
       }
       map.remove();
     };
-  }, [coordinates]);
+  }, []);
 
   return (
     <div className="flex h-screen">
