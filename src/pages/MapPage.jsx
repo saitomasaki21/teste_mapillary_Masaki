@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { Viewer } from 'mapillary-js';
@@ -7,8 +7,6 @@ import 'mapillary-js/dist/mapillary.css';
 const MapPage = () => {
   const mapillaryContainerRef = useRef(null);
   const mapboxContainerRef = useRef(null);
-  const [imageIds, setImageIds] = useState('');
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   const mapillaryAccessToken = 'MLY|9269492676456633|a6293e72d833fa0f80c33e4fb48d14f5';
   const mapboxAccessToken = 'pk.eyJ1IjoiYW5kcmVtZW5kb25jYSIsImEiOiJjbGxrMmRidjYyaGk4M21tZ2hhanFjMjVwIn0.4_fHgnbXRc1Hxg--Bs_kkg';
@@ -44,13 +42,22 @@ const MapPage = () => {
     [-49.23261166, -25.45146091]
   ];
 
+  const imageIds = [
+    '564405889206577', '858619079095291', '6897855763634676', '675519324722242', '866453934972803',
+    '1680533709090114', '291399706582584', '291399706582584', '936108151508171', '780569173997030',
+    '230996086536359', '876671320563744', '324569450614861', '877737093809904', '695954539160725',
+    '7527311407320062', '870613777929575', '1022081832400119', '903486144533483', '961090825346880',
+    '318662640957977', '1537570700318502', '1369903320569507', '664519655751696', '1063849258294245',
+    '6887695734650762', '941517530977698', '307327778886459'
+  ];
+
   useEffect(() => {
     if (!mapillaryContainerRef.current || !mapboxContainerRef.current) return;
 
     const viewer = new Viewer({
       accessToken: mapillaryAccessToken,
       container: mapillaryContainerRef.current,
-      imageId: '',
+      imageId: imageIds[0],
     });
 
     mapboxgl.accessToken = mapboxAccessToken;
@@ -63,19 +70,23 @@ const MapPage = () => {
 
     // Add markers for each coordinate
     coordinates.forEach((coord, index) => {
-      const marker = new mapboxgl.Marker()
-        .setLngLat(coord)
-        .addTo(map);
+      const el = document.createElement('div');
+      el.className = 'marker';
+      el.style.backgroundColor = '#3FB1CE';
+      el.style.width = '20px';
+      el.style.height = '20px';
+      el.style.borderRadius = '50%';
+      el.style.cursor = 'pointer';
 
-      marker.getElement().addEventListener('click', () => {
-        if (imageIds) {
-          const ids = imageIds.split(',').map(id => id.trim());
-          if (index < ids.length) {
-            viewer.moveTo(ids[index]);
-            setCurrentImageIndex(index);
-          }
+      el.addEventListener('click', () => {
+        if (index < imageIds.length) {
+          viewer.moveTo(imageIds[index]);
         }
       });
+
+      new mapboxgl.Marker(el)
+        .setLngLat(coord)
+        .addTo(map);
     });
 
     // Draw path on the map
@@ -112,39 +123,10 @@ const MapPage = () => {
     };
   }, []);
 
-  useEffect(() => {
-    if (imageIds && mapillaryContainerRef.current) {
-      const ids = imageIds.split(',').map(id => id.trim());
-      if (ids.length > 0) {
-        const viewer = new Viewer({
-          accessToken: mapillaryAccessToken,
-          container: mapillaryContainerRef.current,
-          imageId: ids[0],
-        });
-        setCurrentImageIndex(0);
-      }
-    }
-  }, [imageIds]);
-
-  const handleImageIdsChange = (e) => {
-    setImageIds(e.target.value);
-  };
-
   return (
-    <div className="flex flex-col h-screen">
-      <div className="flex-none p-4">
-        <input
-          type="text"
-          value={imageIds}
-          onChange={handleImageIdsChange}
-          placeholder="Enter Mapillary image IDs, separated by commas"
-          className="w-full p-2 border rounded"
-        />
-      </div>
-      <div className="flex-grow flex">
-        <div ref={mapillaryContainerRef} className="w-1/2 h-full" />
-        <div ref={mapboxContainerRef} className="w-1/2 h-full" />
-      </div>
+    <div className="flex h-screen">
+      <div ref={mapillaryContainerRef} className="w-1/2 h-full" />
+      <div ref={mapboxContainerRef} className="w-1/2 h-full" />
     </div>
   );
 };
