@@ -63,6 +63,12 @@ const MapPage = () => {
       accessToken: mapillaryAccessToken,
       container: mapillaryContainerRef.current,
       imageId: imageIds[0],
+      component: {
+        cover: false,
+        direction: false,
+        sequence: false,
+        zoom: false,
+      },
     });
 
     newViewer.on('load', () => {
@@ -88,8 +94,8 @@ const MapPage = () => {
       el.style.cursor = 'pointer';
 
       el.addEventListener('click', () => {
-        if (index < imageIds.length && viewer && viewer.isNavigable) {
-          viewer.moveTo(imageIds[index]).catch(console.error);
+        if (index < imageIds.length && newViewer && newViewer.isNavigable) {
+          newViewer.moveTo(imageIds[index]).catch(console.error);
         }
       });
 
@@ -127,8 +133,8 @@ const MapPage = () => {
     });
 
     return () => {
-      if (viewer) {
-        viewer.remove();
+      if (newViewer) {
+        newViewer.remove();
       }
       map.remove();
     };
