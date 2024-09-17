@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { Viewer } from 'mapillary-js';
@@ -7,6 +7,7 @@ import 'mapillary-js/dist/mapillary.css';
 const MapPage = () => {
   const mapillaryContainerRef = useRef(null);
   const mapboxContainerRef = useRef(null);
+  const [viewer, setViewer] = useState(null);
 
   const mapillaryAccessToken = 'MLY|9269492676456633|a6293e72d833fa0f80c33e4fb48d14f5';
   const mapboxAccessToken = 'pk.eyJ1IjoiYW5kcmVtZW5kb25jYSIsImEiOiJjbGxrMmRidjYyaGk4M21tZ2hhanFjMjVwIn0.4_fHgnbXRc1Hxg--Bs_kkg';
@@ -48,16 +49,24 @@ const MapPage = () => {
     '230996086536359', '876671320563744', '324569450614861', '877737093809904', '695954539160725',
     '7527311407320062', '870613777929575', '1022081832400119', '903486144533483', '961090825346880',
     '318662640957977', '1537570700318502', '1369903320569507', '664519655751696', '1063849258294245',
-    '6887695734650762', '941517530977698', '307327778886459'
+    '6887695734650762', '941517530977698', '307327778886459', '360254566391481', '708168144280170',
+    '1531000317665797', '2055332174834547', '7031077663682077', '333672646080889', '7308143179305175',
+    '853149449881551', '5532332970224700', '1083288059782327', '5532332970224700', '357183816780246',
+    '737315741828557', '702692014903291', '363515566241047', '689239093311973', '3731987453737181',
+    '371255755344379', '691734116248246', '214167844438607'
   ];
 
   useEffect(() => {
     if (!mapillaryContainerRef.current || !mapboxContainerRef.current) return;
 
-    const viewer = new Viewer({
+    const newViewer = new Viewer({
       accessToken: mapillaryAccessToken,
       container: mapillaryContainerRef.current,
       imageId: imageIds[0],
+    });
+
+    newViewer.on('load', () => {
+      setViewer(newViewer);
     });
 
     mapboxgl.accessToken = mapboxAccessToken;
@@ -79,8 +88,8 @@ const MapPage = () => {
       el.style.cursor = 'pointer';
 
       el.addEventListener('click', () => {
-        if (index < imageIds.length) {
-          viewer.moveTo(imageIds[index]);
+        if (index < imageIds.length && viewer && viewer.isNavigable) {
+          viewer.moveTo(imageIds[index]).catch(console.error);
         }
       });
 
@@ -118,7 +127,9 @@ const MapPage = () => {
     });
 
     return () => {
-      viewer.remove();
+      if (viewer) {
+        viewer.remove();
+      }
       map.remove();
     };
   }, []);
