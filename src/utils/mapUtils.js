@@ -19,7 +19,9 @@ export const addMarkersToMap = (map, coordinates, imageIds, viewerRef) => {
 
     el.addEventListener('mouseenter', () => {
       map.getCanvas().style.cursor = 'pointer';
-      popup.setLngLat(coord).setHTML(`Image ID: ${imageIds[index]}`).addTo(map);
+      popup.setLngLat(coord)
+           .setHTML(`Image Order: ${index + 1}<br>Image ID: ${imageIds[index]}`)
+           .addTo(map);
     });
 
     el.addEventListener('mouseleave', () => {
