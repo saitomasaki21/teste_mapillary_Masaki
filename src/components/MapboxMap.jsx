@@ -13,7 +13,7 @@ export const MapboxMap = ({ accessToken, coordinates, imageIds, viewerRef }) => 
       container: mapboxContainerRef.current,
       style: 'mapbox://styles/mapbox/streets-v11',
       center: coordinates[0],
-      zoom: 18,
+      zoom: 20, // Increased from 18 to 20
     });
 
     map.on('load', () => {
