@@ -50,8 +50,7 @@ export const MapboxMap = ({ accessToken, coordinates, imageIds, viewerRef }) => 
         },
         paint: {
           'icon-color': '#3FB1CE',
-          'icon-halo-color': '#fff',
-          'icon-halo-width': 2,
+          'icon-opacity': 0.8,
         },
       });
 
