@@ -63,3 +63,24 @@ export const drawPathOnMap = (map, coordinates) => {
     },
   });
 };
+
+export const updateFieldOfView = (map, fovLayer, pov) => {
+  if (pov && pov.lat && pov.lng) {
+    fovLayer.setData({
+      type: 'Feature',
+      properties: {
+        bearing: pov.bearing,
+      },
+      geometry: {
+        type: 'Point',
+        coordinates: [pov.lng, pov.lat],
+      },
+    });
+
+    map.easeTo({
+      center: [pov.lng, pov.lat],
+      bearing: pov.bearing,
+      pitch: pov.pitch,
+    });
+  }
+};
