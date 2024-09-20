@@ -38,7 +38,12 @@ export const MapboxMap = ({ accessToken, coordinates, imageIds, viewerRef }) => 
           this._map = map;
           this._container = document.createElement('div');
           this._container.className = 'mapboxgl-ctrl mapboxgl-ctrl-group';
-          this._container.innerHTML = '<div class="north-arrow">N</div>';
+          this._container.innerHTML = `
+            <div class="north-arrow">
+              <div class="north-arrow-pointer"></div>
+              <div class="north-arrow-n">N</div>
+            </div>
+          `;
           return this._container;
         }
 
