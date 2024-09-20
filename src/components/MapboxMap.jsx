@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
 import { createMarkerElement, addMarkersToMap, drawPathOnMap, updateFieldOfView } from '../utils/mapUtils';
 
 export const MapboxMap = ({ accessToken, coordinates, imageIds, viewerRef }) => {
@@ -23,6 +24,31 @@ export const MapboxMap = ({ accessToken, coordinates, imageIds, viewerRef }) => 
     map.on('load', () => {
       addMarkersToMap(map, coordinates, imageIds, viewerRef);
       drawPathOnMap(map, coordinates);
+
+      // Add scale control
+      const scale = new mapboxgl.ScaleControl({
+        maxWidth: 80,
+        unit: 'metric'
+      });
+      map.addControl(scale, 'bottom-left');
+
+      // Add custom north arrow control
+      class NorthArrowControl {
+        onAdd(map) {
+          this._map = map;
+          this._container = document.createElement('div');
+          this._container.className = 'mapboxgl-ctrl mapboxgl-ctrl-group';
+          this._container.innerHTML = '<div class="north-arrow">N</div>';
+          return this._container;
+        }
+
+        onRemove() {
+          this._container.parentNode.removeChild(this._container);
+          this._map = undefined;
+        }
+      }
+
+      map.addControl(new NorthArrowControl(), 'top-right');
 
       // Add a new layer for the field of view
       map.addSource('fov', {
