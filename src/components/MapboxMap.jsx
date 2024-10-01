@@ -96,9 +96,9 @@ export const MapboxMap = ({ accessToken, coordinates, imageIds, viewerRef }) => 
         const pov = viewerRef.current.getPointOfView();
         if (pov) {
           updateFieldOfView(mapRef.current, fovLayerRef.current, pov);
-          const currentNode = viewerRef.current.getActiveNode();
-          if (currentNode) {
-            setCurrentImageId(currentNode.id);
+          const currentId = viewerRef.current.getCurrentId();
+          if (currentId) {
+            setCurrentImageId(currentId);
           }
         }
       };
