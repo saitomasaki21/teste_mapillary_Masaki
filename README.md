@@ -1,4 +1,5 @@
 Simple Navigator with mapillary and mapbox. Made with GptEngineer.
+Navigate through the image selection by clicking points along the path
 
 **work with an IDE**
 
