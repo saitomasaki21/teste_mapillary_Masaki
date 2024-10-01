@@ -17,7 +17,7 @@ export const MapboxMap = ({ accessToken, coordinates, imageIds, viewerRef }) => 
     const map = new mapboxgl.Map({
       container: mapboxContainerRef.current,
       center: coordinates[0],
-      zoom: 17,
+      zoom: 18,
       pitch: 75,
       style: 'mapbox://styles/mapbox/standard',   
     });
