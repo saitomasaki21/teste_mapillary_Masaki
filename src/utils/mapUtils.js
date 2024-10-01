@@ -1,9 +1,9 @@
 import mapboxgl from 'mapbox-gl';
 
-export const createMarkerElement = () => {
+export const createMarkerElement = (isActive = false) => {
   const el = document.createElement('div');
   el.className = 'marker';
-  el.style.backgroundColor = '#3FB1CE';
+  el.style.backgroundColor = isActive ? '#FF0000' : '#3FB1CE';
   el.style.width = '20px';
   el.style.height = '20px';
   el.style.borderRadius = '50%';
@@ -11,8 +11,8 @@ export const createMarkerElement = () => {
   return el;
 };
 
-export const addMarkersToMap = (map, coordinates, imageIds, viewerRef) => {
-  coordinates.forEach((coord, index) => {
+export const addMarkersToMap = (map, coordinates, imageIds, viewerRef, setCurrentImageId) => {
+  return coordinates.map((coord, index) => {
     const el = createMarkerElement();
     const marker = new mapboxgl.Marker(el).setLngLat(coord).addTo(map);
     const popup = new mapboxgl.Popup({ closeButton: false, closeOnClick: false });
@@ -32,8 +32,11 @@ export const addMarkersToMap = (map, coordinates, imageIds, viewerRef) => {
     el.addEventListener('click', () => {
       if (viewerRef.current && viewerRef.current.isNavigable) {
         viewerRef.current.moveTo(imageIds[index]).catch(console.error);
+        setCurrentImageId(imageIds[index]);
       }
     });
+
+    return marker;
   });
 };
 

@@ -116,7 +116,7 @@ export const MapboxMap = ({ accessToken, coordinates, imageIds, viewerRef }) => 
       markersRef.current.forEach((marker, index) => {
         const el = marker.getElement();
         if (imageIds[index] === currentImageId) {
-          el.style.backgroundColor = '#FF0000'; // Highlight color
+          el.style.backgroundColor = '#FF0000'; // Highlight color for current image
         } else {
           el.style.backgroundColor = '#3FB1CE'; // Default color
         }
