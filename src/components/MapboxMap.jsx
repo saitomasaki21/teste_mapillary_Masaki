@@ -19,13 +19,7 @@ export const MapboxMap = ({ accessToken, coordinates, imageIds, viewerRef }) => 
       center: coordinates[0],
       zoom: 20,
       pitch: 75,
-      style: 'mapbox://styles/mapbox/standard',
-// Use the Mapbox Standard style
-      config: {
-            // Initial configuration for the Mapbox Standard style set above. By default, its ID is `basemap`.
-            basemap: {
-                // Here, we're disabling all of the 3D layers such as landmarks, trees, and 3D extrusions.
-                show3dObjects: false      
+      style: 'mapbox://styles/mapbox/standard',   
     });
 
     mapRef.current = map;
