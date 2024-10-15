@@ -30,7 +30,7 @@ const MapPage = () => {
       />
       <MapboxMap
         accessToken={mapboxAccessToken}
-        coordinates={coordinates}
+        coordinates={coordinates.map((img) => img.coords)}
         imageIds={imageIds}
         viewerRef={viewerRef}
       />
