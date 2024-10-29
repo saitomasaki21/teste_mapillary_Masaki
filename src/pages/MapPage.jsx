@@ -5,7 +5,7 @@ import { Viewer } from 'mapillary-js';
 import 'mapillary-js/dist/mapillary.css';
 import { MapboxMap } from '../components/MapboxMap';
 import { MapillaryViewer } from '../components/MapillaryViewer';
-import { coordinates, imageIds } from '../utils/mapData';
+import { imageIds, imageIds } from '../utils/mapData';
 
 const mapillaryAccessToken = 'MLY|9269492676456633|a6293e72d833fa0f80c33e4fb48d14f5';
 const mapboxAccessToken = 'pk.eyJ1IjoiYW5kcmVtZW5kb25jYSIsImEiOiJjbGxrMmRidjYyaGk4M21tZ2hhanFjMjVwIn0.4_fHgnbXRc1Hxg--Bs_kkg';
