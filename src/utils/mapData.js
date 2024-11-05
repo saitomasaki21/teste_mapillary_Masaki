@@ -26,9 +26,13 @@ async function fetchCoordinates(imageIds) {
       console.error(error);
     }
   }
-  
+
   return coordinates;
 }
 
-// Chamada para a função e exportação das coordenadas
-export const coordinates = await fetchCoordinates(imageIds);
+// Função assíncrona para inicializar as coordenadas
+async function init() {
+  export const coordinates = await fetchCoordinates(imageIds);
+}
+
+init().catch(error => console.error("Falha ao inicializar as coordenadas:", error));
