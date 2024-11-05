@@ -6,9 +6,12 @@ export const imageIds = [
   2474641246068877
 ];
 
+// Variável para armazenar as coordenadas
+let coordinates = [];
+
 // Função para obter as coordenadas a partir do Mapillary
 async function fetchCoordinates(imageIds) {
-  const coordinates = [];
+  const coords = [];
 
   for (const id of imageIds) {
     try {
@@ -18,7 +21,7 @@ async function fetchCoordinates(imageIds) {
       }
       const data = await response.json();
       // Adiciona as coordenadas ao array
-      coordinates.push({
+      coords.push({
         latitude: data.lat,
         longitude: data.lon,
       });
@@ -27,12 +30,14 @@ async function fetchCoordinates(imageIds) {
     }
   }
 
-  return coordinates;
+  return coords;
 }
 
-// Função assíncrona para inicializar as coordenadas
-async function init() {
-  export const coordinates = await fetchCoordinates(imageIds);
+// Função para inicializar as coordenadas
+export async function initCoordinates() {
+  coordinates = await fetchCoordinates(imageIds);
 }
 
-init().catch(error => console.error("Falha ao inicializar as coordenadas:", error));
+// Exporta a variável de coordenadas
+export const getCoordinates = () => coordinates;
+
