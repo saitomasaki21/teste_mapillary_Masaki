@@ -5,7 +5,7 @@ export const imageIds = [
   2474641246068877
 ];
 
-const fetchCoordinates = async () => {
+export const coordinates = async () => {
   const coordinates = await Promise.all(imageIds.map(async (imageIds) => {
     const url = `https://graph.mapillary.com/${imageId}?fields=computed_geometry&access_token=${mapillaryAccessToken}`;
     try {
