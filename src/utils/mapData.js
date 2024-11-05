@@ -1,3 +1,4 @@
+// Array com os imageIds do Mapillary
 export const imageIds = [
   532582459129057,
   1548741512383121,
@@ -5,22 +6,29 @@ export const imageIds = [
   2474641246068877
 ];
 
-export const coordinates = async () => {
-  const coordinates = await Promise.all(imageIds.map(async (imageIds) => {
-    const url = `https://graph.mapillary.com/${imageId}?fields=computed_geometry&access_token=${mapillaryAccessToken}`;
-    try {
-      const response = await fetch(url);
-      const data = await response.json();
+// Função para obter as coordenadas a partir do Mapillary
+async function fetchCoordinates(imageIds) {
+  const coordinates = [];
 
-      if (data.computed_geometry && data.computed_geometry.coordinates) {
-        const [longitude, latitude] = data.computed_geometry.coordinates;
-        return { imageId, latitude, longitude };
-      } else {
-        console.error(`Coordinates not available for image ID: ${imageId}`);
-        return null;
+  for (const id of imageIds) {
+    try {
+      const response = await fetch(`https://a.mapillary.com/v3/images/${id}?client_id=YOUR_CLIENT_ID`);
+      if (!response.ok) {
+        throw new Error(`Erro ao buscar a imagem com ID ${id}: ${response.statusText}`);
       }
+      const data = await response.json();
+      // Adiciona as coordenadas ao array
+      coordinates.push({
+        latitude: data.lat,
+        longitude: data.lon,
+      });
     } catch (error) {
-      console.error(`Error fetching data for image ID: ${imageId}`, error);
-      return null;
+      console.error(error);
     }
-  }));
+  }
+  
+  return coordinates;
+}
+
+// Chamada para a função e exportação das coordenadas
+export const coordinates = await fetchCoordinates(imageIds);
