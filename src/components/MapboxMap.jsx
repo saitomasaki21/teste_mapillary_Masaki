@@ -16,10 +16,9 @@ export const MapboxMap = ({ accessToken, coordinates, imageIds, viewerRef }) => 
     mapboxgl.accessToken = accessToken;
     const map = new mapboxgl.Map({
       container: mapboxContainerRef.current,
-      center: coordinates[25],
-      zoom: 30,
-      pitch: 70,
-      style: 'mapbox://styles/mapbox/standard',   
+      style: 'mapbox://styles/mapbox/streets-v11',
+      center: coordinates[0],
+      zoom: 30,   
     });
 
     mapRef.current = map;
