@@ -1,89 +1,35 @@
-import mapboxgl from 'mapbox-gl';
+export const drawPathOnMap = (map, coordinates, options = {}) => {
+  const sourceId = options.trailId ? `${options.trailId}-source` : 'path-source';
+  const layerId = options.trailId ? `${options.trailId}-layer` : 'path-layer';
 
-export const createMarkerElement = (isActive = false) => {
-  const el = document.createElement('div');
-  el.className = 'marker';
-  el.style.backgroundColor = isActive ? '#FF0000' : '#3FB1CE';
-  el.style.width = '20px';
-  el.style.height = '20px';
-  el.style.borderRadius = '50%';
-  el.style.cursor = 'pointer';
-  return el;
-};
-
-export const addMarkersToMap = (map, coordinates, imageIds, viewerRef, setCurrentImageId) => {
-  return coordinates.map((coord, index) => {
-    const el = createMarkerElement();
-    const marker = new mapboxgl.Marker(el).setLngLat(coord).addTo(map);
-    const popup = new mapboxgl.Popup({ closeButton: false, closeOnClick: false });
-
-    el.addEventListener('mouseenter', () => {
-      map.getCanvas().style.cursor = 'pointer';
-      popup.setLngLat(coord)
-           .setHTML(`Ordem: ${index + 1}<br>Image ID: ${imageIds[index]}`)
-           .addTo(map);
+  if (map.getSource(sourceId)) {
+    map.getSource(sourceId).setData({
+      type: 'Feature',
+      geometry: {
+        type: 'LineString',
+        coordinates
+      }
     });
-
-    el.addEventListener('mouseleave', () => {
-      map.getCanvas().style.cursor = '';
-      popup.remove();
-    });
-
-    el.addEventListener('click', () => {
-      if (viewerRef.current && viewerRef.current.isNavigable) {
-        viewerRef.current.moveTo(imageIds[index]).catch(console.error);
-        setCurrentImageId(imageIds[index]);
+  } else {
+    map.addSource(sourceId, {
+      type: 'geojson',
+      data: {
+        type: 'Feature',
+        geometry: {
+          type: 'LineString',
+          coordinates
+        }
       }
     });
 
-    return marker;
-  });
-};
-
-export const drawPathOnMap = (map, coordinates) => {
-  map.addSource('route', {
-    type: 'geojson',
-    data: {
-      type: 'Feature',
-      properties: {},
-      geometry: {
-        type: 'LineString',
-        coordinates,
-      },
-    },
-  });
-  map.addLayer({
-    id: 'route',
-    type: 'line',
-    source: 'route',
-    layout: {
-      'line-join': 'round',
-      'line-cap': 'round',
-    },
-    paint: {
-      'line-color': '#888',
-      'line-width': 8,
-    },
-  });
-};
-
-export const updateFieldOfView = (map, fovLayer, pov) => {
-  if (pov && pov.lat && pov.lng) {
-    fovLayer.setData({
-      type: 'Feature',
-      properties: {
-        bearing: pov.bearing,
-      },
-      geometry: {
-        type: 'Point',
-        coordinates: [pov.lng, pov.lat],
-      },
-    });
-
-    map.easeTo({
-      center: [pov.lng, pov.lat],
-      bearing: pov.bearing,
-      pitch: pov.pitch,
+    map.addLayer({
+      id: layerId,
+      type: 'line',
+      source: sourceId,
+      paint: {
+        'line-color': options.lineColor || '#ff0000',
+        'line-width': options.lineWidth || 2
+      }
     });
   }
 };
