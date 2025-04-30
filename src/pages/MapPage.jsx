@@ -30,8 +30,8 @@ const MapPage = () => {
       />
       <MapboxMap
         accessToken={mapboxAccessToken}
-        mapillaryAccessToken={mapillaryAccessToken}
-        trails={trails}
+        coordinates={coordinates}
+        imageIds={imageIds}
         viewerRef={viewerRef}
       />
     </div>
