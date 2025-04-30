@@ -1,80 +1,70 @@
 import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { addMarkersToMap, drawPathOnMap, updateFieldOfView, updateMarkerStyle } from '../utils/mapUtils';
+import { createMarkerElement, addMarkersToMap, drawPathOnMap, updateFieldOfView } from '../utils/mapUtils';
 
-export const MapboxMap = ({ accessToken, mapillaryAccessToken, trails, viewerRef }) => {
+export const MapboxMap = ({ accessToken, coordinates, imageIds, viewerRef }) => {
   const mapboxContainerRef = useRef(null);
   const mapRef = useRef(null);
   const fovLayerRef = useRef(null);
   const markersRef = useRef([]);
-  const [activeMarkerIndex, setActiveMarkerIndex] = useState(0);
-  const [trailsData, setTrailsData] = useState([]);
-
-  // Busca as coordenadas dos IDs do Mapillary
-  useEffect(() => {
-    const fetchTrailsData = async () => {
-      const fetchedTrails = await Promise.all(
-        trails.map(async trail => {
-          const coordinates = await Promise.all(
-            trail.imageIds.map(async imageId => {
-              const response = await fetch(
-                `https://graph.mapillary.com/${imageId}?fields=geometry&access_token=${mapillaryAccessToken}`
-              );
-              const data = await response.json();
-              return data.geometry.coordinates;
-            })
-          );
-          return { ...trail, coordinates };
-        })
-      );
-      setTrailsData(fetchedTrails);
-    };
-
-    fetchTrailsData();
-  }, [trails, mapillaryAccessToken]);
+  const [currentImageId, setCurrentImageId] = useState(null);
 
   useEffect(() => {
-    if (!mapboxContainerRef.current || trailsData.length === 0) return;
+    if (!mapboxContainerRef.current) return;
 
     mapboxgl.accessToken = accessToken;
     const map = new mapboxgl.Map({
       container: mapboxContainerRef.current,
       style: 'mapbox://styles/mapbox/streets-v11',
-      center: trailsData[0].coordinates[0],
-      zoom: 15,
-      pitch: 45,
-      bearing: -17.6
+      center: coordinates[0],
+      zoom: 30,   
     });
 
     mapRef.current = map;
 
     map.on('load', () => {
-      // Adiciona todos os marcadores
-      const allCoordinates = trailsData.flatMap(t => t.coordinates);
-      const allImageIds = trailsData.flatMap(t => t.imageIds);
-      
-      markersRef.current = addMarkersToMap(map, allCoordinates, allImageIds, viewerRef, setActiveMarkerIndex);
+      markersRef.current = addMarkersToMap(map, coordinates, imageIds, viewerRef, setCurrentImageId);
+      drawPathOnMap(map, coordinates);
 
-      // Desenha cada trilha
-      trailsData.forEach((trail, index) => {
-        drawPathOnMap(map, trail.coordinates, {
-          lineColor: `hsl(${(index * 360) / trailsData.length}, 100%, 50%)`,
-          lineWidth: 4,
-          trailId: `trail-${index}`
-        });
+      const scale = new mapboxgl.ScaleControl({
+        maxWidth: 80,
+        unit: 'metric'
       });
+      map.addControl(scale, 'bottom-left');
 
-      // Configuração do campo de visão
+      class NorthArrowControl {
+        onAdd(map) {
+          this._map = map;
+          this._container = document.createElement('div');
+          this._container.className = 'mapboxgl-ctrl mapboxgl-ctrl-group';
+          this._container.innerHTML = `
+            <div class="north-arrow">
+              <div class="north-arrow-pointer"></div>
+              <div class="north-arrow-n">N</div>
+            </div>
+          `;
+          return this._container;
+        }
+
+        onRemove() {
+          this._container.parentNode.removeChild(this._container);
+          this._map = undefined;
+        }
+      }
+
+      map.addControl(new NorthArrowControl(), 'top-right');
+
       map.addSource('fov', {
         type: 'geojson',
         data: {
           type: 'Feature',
+          properties: {},
           geometry: {
             type: 'Point',
-            coordinates: allCoordinates[0]
-          }
-        }
+            coordinates: coordinates[0],
+          },
+        },
       });
 
       map.addLayer({
@@ -84,18 +74,55 @@ export const MapboxMap = ({ accessToken, mapillaryAccessToken, trails, viewerRef
         layout: {
           'icon-image': 'triangle-15',
           'icon-rotate': ['get', 'bearing'],
-          'icon-rotation-alignment': 'map'
-        }
+          'icon-rotation-alignment': 'map',
+          'icon-allow-overlap': true,
+          'icon-ignore-placement': true,
+        },
+        paint: {
+          'icon-color': '#3FB1CE',
+          'icon-opacity': 0.8,
+        },
       });
 
       fovLayerRef.current = map.getSource('fov');
     });
 
     return () => map.remove();
-  }, [trailsData, accessToken]);
+  }, [accessToken, coordinates, imageIds, viewerRef]);
 
-  // Restante do código permanece igual...
-  // [Manter os useEffect de atualização do FOV e marcadores ativos]
+  useEffect(() => {
+    if (viewerRef.current && mapRef.current && fovLayerRef.current) {
+      const updateFOV = () => {
+        const pov = viewerRef.current.getPointOfView();
+        if (pov) {
+          updateFieldOfView(mapRef.current, fovLayerRef.current, pov);
+          const currentId = viewerRef.current.getCurrentId();
+          if (currentId) {
+            setCurrentImageId(currentId);
+          }
+        }
+      };
+
+      viewerRef.current.on('position', updateFOV);
+
+      return () => {
+        viewerRef.current.off('position', updateFOV);
+      };
+    }
+  }, [viewerRef]);
+
+  useEffect(() => {
+    if (currentImageId && markersRef.current) {
+      markersRef.current.forEach((marker, index) => {
+        const el = marker.getElement();
+        if (imageIds[index] === currentImageId) {
+          el.style.backgroundColor = '#FF0000'; // Highlight color for current image
+        } else {
+          el.style.backgroundColor = '#3FB1CE'; // Default color
+        }
+      });
+    }
+  }, [currentImageId, imageIds]);
 
   return <div ref={mapboxContainerRef} className="w-1/2 h-full" />;
 };
